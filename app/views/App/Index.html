@@ -1,0 +1,68 @@
+{{set . "title" "Home"}}
+{{template "header.html" .}}
+
+<div class="container">
+  <div class="row">
+    <div class="span6">
+      {{template "flash.html" .}}
+
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <form method="post" action="{{url "App.Upload"}}" enctype="multipart/form-data">
+              <p>
+                <label for="torrent"><strong>Movie:</strong></label>
+                <input type="file" name="torrent" id="torrent" class="span6">
+                <input type="hidden" name="folder" value="movies">
+              </p>
+              <input type="submit" value="Upload" class="btn btn-large btn-success">
+            </form>
+          </div>
+
+          <hr class="hidden-md hidden-lg">
+
+          <div class="col-md-6">
+            <form method="post" action="{{url "App.Upload"}}" enctype="multipart/form-data">
+              <p>
+                <label for="torrent"><strong>TV Show:</strong></label>
+                <input type="file" name="torrent" id="torrent" class="span6">
+                <input type="hidden" name="folder" value="tv">
+              </p>
+              <input type="submit" value="Upload" class="btn btn-large btn-success">
+            </form>
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="row">
+          <div class="col-md-6">
+            <form method="post" action="{{url "App.Upload"}}" enctype="multipart/form-data">
+              <p>
+                <label for="torrent"><strong>Music:</strong></label>
+                <input type="file" name="torrent" id="torrent" class="span6">
+                <input type="hidden" name="folder" value="music">
+              </p>
+              <input type="submit" value="Upload" class="btn btn-large btn-success">
+            </form>
+          </div>
+
+          <hr class="hidden-md hidden-lg">
+
+          <div class="col-md-6">
+            <form method="post" action="{{url "App.Upload"}}" enctype="multipart/form-data">
+              <p>
+                <label for="torrent"><strong>Misc:</strong></label>
+                <input type="file" name="torrent" id="torrent" class="span6">
+                <input type="hidden" name="folder" value="misc">
+              </p>
+              <input type="submit" value="Upload" class="btn btn-large btn-success">
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{template "footer.html" .}}
