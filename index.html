@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{.Title}}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      a, a:hover, a:visited {
+        color: black;
+      }
+
+      a:hover {
+        text-decoration: none;
+        color: black;
+      }
+
+      body {
+        margin: 0;
+          overflow: hide;
+      }
+
+      .header {
+        height: 20px;
+      }
+
+      #menu {
+        background-color: #ffcd72;
+        font-size:2em;
+        position: absolute;
+        top:80vh;
+        left:5px;
+        z-index:2
+      }
+
+      .frame {
+        margin: 0;
+          padding: 0;
+        width: 100%;
+        height: calc(100vh - 25px);
+      }
+
+      a.active {
+        background-color: black;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header">
+      {{range .Tabs}}
+      <a href="{{.URL}}" class="framelink">{{.Name}}</a>
+      {{end}}
+
+      <span style="float:right">
+        {{.Announcement}}
+      </span>
+    </div>
+    <iframe class="frame" style="" src="https://requests.cryobank.cc"></iframe>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script>
+      $('.framelink').first().addClass('active');
+      $('.framelink').on('click', function(e) {
+        e.preventDefault();
+        $('.frame').attr('src', $(this).attr('href'));
+        $('.framelink').removeClass('active');
+        $(this).addClass('active');
+      });
+    </script>
+  </body>
+</html>
+
+

@@ -1,0 +1,18 @@
+---
+title: example.com
+announcement: "Now with announcements!"
+tabs:
+  - name: requests
+    url: https://requests.example.com
+  - name: couch
+    url: https://couch.example.com
+  - name: sick
+    url: https://sick.example.com
+  - name: gazelleui
+    url: https://gazelleui.example.com
+  - name: manual
+    url: https://manual.example.com
+  - name: tautulli
+    url: https://tautulli.example.com
+  - name: portainer
+    url: https://portainer.example.com/

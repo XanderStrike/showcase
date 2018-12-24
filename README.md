@@ -1,30 +1,10 @@
 # showcase
 
-This is garbage please don't look
+Stupid simple tabbed homepage for sites with lots of services
 
-### installation
-
-If you've got it, [Docker](https://www.docker.com/) is the best way to run this project.
-
-    docker create \
-      --name=showcase \
-      --restart always \
-      -e PGID=1000 -e PUID=1000  \
-      -e TZ=America/Los_Angeles \
-      -e USERNAME=<username> \
-      -e PASSWORD=<password> \
+    docker run -d \
+      -v <path to config>:/app/config \
       -p 8080:8080 \
-      xanderstrike/showcase
+      xanderstrike/showcase:latest
 
-* PGID and PUID can be found by running `id` in a terminal
-* TZ is your timezone
-* USERNAME and PASSWORD are optional authentication params
-* Configure the port by setting `8080:8080` to `<your port>:8080`
-
-Run with:
-
-    docker start showcase
-
-### license
-
-MIT license
+See the sample config for how to set up your own
