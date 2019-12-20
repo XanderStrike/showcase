@@ -5,8 +5,18 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
+      #header {
+        margin:10px;
+        position: fixed;
+        bottom: 0;
+        right: 5px;
+      }
       a, a:hover, a:visited {
         color: black;
+        border-radius: 5px;
+        padding: 1em;
+        background-color: white;
+        opacity: 0.6
       }
 
       a:hover {
@@ -16,52 +26,48 @@
 
       body {
         margin: 0;
-          overflow: hide;
-      }
-
-      .header {
-        height: 20px;
-      }
-
-      #menu {
-        background-color: #ffcd72;
-        font-size:2em;
-        position: absolute;
-        top:80vh;
-        left:5px;
-        z-index:2
+        overflow: hidden;
+          height:100vh
       }
 
       .frame {
-        margin: 0;
-          padding: 0;
-        width: 100%;
-        height: calc(100vh - 25px);
+        width: 100%; height: 100%; border: none; margin: 0; padding: 0; display: block;
       }
 
       a.active {
         background-color: black;
         color: white;
+        opacity: 1;
+      }
+
+      .announcement {
+        background-color: white;
+        padding: 1em;
+        margin-right:1em;
+        border-radius: 5px;
+        opacity: 0.8
       }
     </style>
   </head>
   <body>
     <div id="header">
+      <span class="announcement">
+        {{.Announcement}}
+      </span>
+
       {{range .Tabs}}
       <a href="{{.URL}}" class="framelink">{{.Name}}</a>
       {{end}}
 
-      <span style="float:right">
-        {{.Announcement}}
-      </span>
     </div>
-    <iframe class="frame" style="" src="https://requests.cryobank.cc"></iframe>
+    <iframe class="frame" style="" src="https://requests.example.com"></iframe>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script>
       $('.framelink').first().addClass('active');
       $('.framelink').on('click', function(e) {
         e.preventDefault();
+        document.title = "{{.Title}}: " + $(this).text();
         $('.frame').attr('src', $(this).attr('href'));
         $('.framelink').removeClass('active');
         $(this).addClass('active');
