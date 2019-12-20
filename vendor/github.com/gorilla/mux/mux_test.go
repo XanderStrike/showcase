@@ -7,13 +7,17 @@ package mux
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 func (r *Route) GoString() string {
@@ -104,7 +108,15 @@ func TestHost(t *testing.T) {
 			path:        "",
 			shouldMatch: false,
 		},
-		// BUG {new(Route).Host("aaa.bbb.ccc:1234"), newRequestHost("GET", "/111/222/333", "aaa.bbb.ccc:1234"), map[string]string{}, "aaa.bbb.ccc:1234", "", true},
+		{
+			title:       "Host route with port, match with request header",
+			route:       new(Route).Host("aaa.bbb.ccc:1234"),
+			request:     newRequestHost("GET", "/111/222/333", "aaa.bbb.ccc:1234"),
+			vars:        map[string]string{},
+			host:        "aaa.bbb.ccc:1234",
+			path:        "",
+			shouldMatch: true,
+		},
 		{
 			title:       "Host route with port, wrong host in request header",
 			route:       new(Route).Host("aaa.bbb.ccc:1234"),
@@ -113,6 +125,16 @@ func TestHost(t *testing.T) {
 			host:        "aaa.bbb.ccc:1234",
 			path:        "",
 			shouldMatch: false,
+		},
+		{
+			title:        "Host route with pattern, match with request header",
+			route:        new(Route).Host("aaa.{v1:[a-z]{3}}.ccc:1{v2:(?:23|4)}"),
+			request:      newRequestHost("GET", "/111/222/333", "aaa.bbb.ccc:123"),
+			vars:         map[string]string{"v1": "bbb", "v2": "23"},
+			host:         "aaa.bbb.ccc:123",
+			path:         "",
+			hostTemplate: `aaa.{v1:[a-z]{3}}.ccc:1{v2:(?:23|4)}`,
+			shouldMatch:  true,
 		},
 		{
 			title:        "Host route with pattern, match",
@@ -662,8 +684,8 @@ func TestHeaders(t *testing.T) {
 		},
 		{
 			title:       "Headers route, regex header values to match",
-			route:       new(Route).Headers("foo", "ba[zr]"),
-			request:     newRequestHeaders("GET", "http://localhost", map[string]string{"foo": "bar"}),
+			route:       new(Route).HeadersRegexp("foo", "ba[zr]"),
+			request:     newRequestHeaders("GET", "http://localhost", map[string]string{"foo": "baw"}),
 			vars:        map[string]string{},
 			host:        "",
 			path:        "",
@@ -1105,10 +1127,7 @@ func TestSchemes(t *testing.T) {
 
 func TestMatcherFunc(t *testing.T) {
 	m := func(r *http.Request, m *RouteMatch) bool {
-		if r.URL.Host == "aaa.bbb.ccc" {
-			return true
-		}
-		return false
+		return r.URL.Host == "aaa.bbb.ccc"
 	}
 
 	tests := []routeTest{
@@ -1426,10 +1445,11 @@ func TestNamedRoutes(t *testing.T) {
 	r3.NewRoute().Name("g")
 	r3.NewRoute().Name("h")
 	r3.NewRoute().Name("i")
+	r3.Name("j")
 
-	if r1.namedRoutes == nil || len(r1.namedRoutes) != 9 {
-		t.Errorf("Expected 9 named routes, got %v", r1.namedRoutes)
-	} else if r1.Get("i") == nil {
+	if r1.namedRoutes == nil || len(r1.namedRoutes) != 10 {
+		t.Errorf("Expected 10 named routes, got %v", r1.namedRoutes)
+	} else if r1.Get("j") == nil {
 		t.Errorf("Subroute name not registered")
 	}
 }
@@ -1927,7 +1947,7 @@ type TestA301ResponseWriter struct {
 }
 
 func (ho *TestA301ResponseWriter) Header() http.Header {
-	return http.Header(ho.hh)
+	return ho.hh
 }
 
 func (ho *TestA301ResponseWriter) Write(b []byte) (int, error) {
@@ -2029,7 +2049,7 @@ func TestNoMatchMethodErrorHandler(t *testing.T) {
 
 	resp := NewRecorder()
 	r.ServeHTTP(resp, req)
-	if resp.Code != 405 {
+	if resp.Code != http.StatusMethodNotAllowed {
 		t.Errorf("Expecting code %v", 405)
 	}
 
@@ -2697,6 +2717,117 @@ func Test_copyRouteConf(t *testing.T) {
 	}
 }
 
+func TestMethodNotAllowed(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }
+	router := NewRouter()
+	router.HandleFunc("/thing", handler).Methods(http.MethodGet)
+	router.HandleFunc("/something", handler).Methods(http.MethodGet)
+
+	w := NewRecorder()
+	req := newRequest(http.MethodPut, "/thing")
+
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("Expected status code 405 (got %d)", w.Code)
+	}
+}
+
+type customMethodNotAllowedHandler struct {
+	msg string
+}
+
+func (h customMethodNotAllowedHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusMethodNotAllowed)
+	fmt.Fprint(w, h.msg)
+}
+
+func TestSubrouterCustomMethodNotAllowed(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }
+
+	router := NewRouter()
+	router.HandleFunc("/test", handler).Methods(http.MethodGet)
+	router.MethodNotAllowedHandler = customMethodNotAllowedHandler{msg: "custom router handler"}
+
+	subrouter := router.PathPrefix("/sub").Subrouter()
+	subrouter.HandleFunc("/test", handler).Methods(http.MethodGet)
+	subrouter.MethodNotAllowedHandler = customMethodNotAllowedHandler{msg: "custom sub router handler"}
+
+	testCases := map[string]struct {
+		path   string
+		expMsg string
+	}{
+		"router method not allowed": {
+			path:   "/test",
+			expMsg: "custom router handler",
+		},
+		"subrouter method not allowed": {
+			path:   "/sub/test",
+			expMsg: "custom sub router handler",
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(tt *testing.T) {
+			w := NewRecorder()
+			req := newRequest(http.MethodPut, tc.path)
+
+			router.ServeHTTP(w, req)
+
+			if w.Code != http.StatusMethodNotAllowed {
+				tt.Errorf("Expected status code 405 (got %d)", w.Code)
+			}
+
+			b, err := ioutil.ReadAll(w.Body)
+			if err != nil {
+				tt.Errorf("failed to read body: %v", err)
+			}
+
+			if string(b) != tc.expMsg {
+				tt.Errorf("expected msg %q, got %q", tc.expMsg, string(b))
+			}
+		})
+	}
+}
+
+func TestSubrouterNotFound(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }
+	router := NewRouter()
+	router.Path("/a").Subrouter().HandleFunc("/thing", handler).Methods(http.MethodGet)
+	router.Path("/b").Subrouter().HandleFunc("/something", handler).Methods(http.MethodGet)
+
+	w := NewRecorder()
+	req := newRequest(http.MethodPut, "/not-present")
+
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("Expected status code 404 (got %d)", w.Code)
+	}
+}
+
+func TestContextMiddleware(t *testing.T) {
+	withTimeout := func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx, cancel := context.WithTimeout(r.Context(), time.Minute)
+			defer cancel()
+			h.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+
+	r := NewRouter()
+	r.Handle("/path/{foo}", withTimeout(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := Vars(r)
+		if vars["foo"] != "bar" {
+			t.Fatal("Expected foo var to be set")
+		}
+	})))
+
+	rec := NewRecorder()
+	req := newRequest("GET", "/path/bar")
+	r.ServeHTTP(rec, req)
+}
+
 // mapToPairs converts a string map to a slice of string pairs
 func mapToPairs(m map[string]string) []string {
 	var i int
@@ -2789,10 +2920,7 @@ func newRequestWithHeaders(method, url string, headers ...string) *http.Request 
 
 // newRequestHost a new request with a method, url, and host header
 func newRequestHost(method, url, host string) *http.Request {
-	req, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		panic(err)
-	}
+	req := httptest.NewRequest(method, url, nil)
 	req.Host = host
 	return req
 }

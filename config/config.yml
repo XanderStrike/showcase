@@ -3,7 +3,7 @@ title: example.com
 announcement: "Now with announcements!"
 tabs:
   - name: requests
-    url: https://requests.example.com
+    url: https://example.com
   - name: couch
     url: https://couch.example.com
   - name: sick
