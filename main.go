@@ -57,6 +57,21 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, config)
 }
 
+func IntroHandler(w http.ResponseWriter, r *http.Request) {
+	var config Conf
+	confFile, err := os.ReadFile("config/config.yml")
+	if err != nil {
+		log.Printf("confFile.Get err   #%v ", err)
+	}
+	err = yaml.Unmarshal(confFile, &config)
+	if err != nil {
+		log.Fatalf("Unmarshal: %v", err)
+	}
+
+	tmpl := template.Must(template.ParseFiles("intro.html"))
+	tmpl.Execute(w, config)
+}
+
 func main() {
 	var config Conf
 	confFile, err := os.ReadFile("config/config.yml")
@@ -69,6 +84,7 @@ func main() {
 	}
 
 	port := "8080"
+	http.HandleFunc("/intro", basicAuth(IntroHandler, config.Username, config.Password))
 	http.HandleFunc("/", basicAuth(HomeHandler, config.Username, config.Password))
 	log.Printf("Server is ready to handle requests at port %s\n", port)
 	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, nil))

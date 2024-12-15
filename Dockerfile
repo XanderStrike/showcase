@@ -7,6 +7,7 @@ FROM alpine:3.19
 WORKDIR /app
 COPY --from=builder /app/showcase .
 COPY index.html .
+COPY intro.html .
 
 RUN adduser -D appuser && \
     mkdir config && \
