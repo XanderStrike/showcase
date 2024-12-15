@@ -1,18 +1,12 @@
 ---
-title: example.com
-announcement: "Now with announcements!"
+title: My Dashboard
+announcement: Welcome to my dashboard!
+username: admin  # Optional: remove or leave blank to disable auth
+password: secret # Optional: remove or leave blank to disable auth
 tabs:
-  - name: requests
+  - name: Home
     url: https://example.com
-  - name: couch
-    url: https://example.com
-  - name: sick
-    url: https://example.com
-  - name: gazelleui
-    url: https://example.com
-  - name: manual
-    url: https://example.com
-  - name: tautulli
-    url: https://example.com
-  - name: portainer
-    url: https://example.com/
+  - name: Status
+    url: https://.example.com
+  - name: Status
+    url: https://.example.com
