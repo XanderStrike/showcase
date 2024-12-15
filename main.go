@@ -2,9 +2,9 @@ package main
 
 import (
 	"html/template"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -22,7 +22,7 @@ type Conf struct {
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	var config Conf
-	confFile, err := ioutil.ReadFile("config/config.yml")
+	confFile, err := os.ReadFile("config/config.yml")
 	if err != nil {
 		log.Printf("confFile.Get err   #%v ", err)
 	}
@@ -36,7 +36,6 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	log.Println("Starting!")
 	port := "8080"
 	http.HandleFunc("/", HomeHandler)
 	log.Printf("Server is ready to handle requests at port %s\n", port)
