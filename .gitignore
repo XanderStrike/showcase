@@ -1,1 +1,4 @@
 showcase
+.env
+*.swp
+.DS_Store
