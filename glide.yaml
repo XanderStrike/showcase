@@ -1,4 +1,0 @@
-package: github.com/xanderstrike/showcase
-import:
-- package: github.com/gorilla/mux
-- package: gopkg.in/yaml.v2

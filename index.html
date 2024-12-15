@@ -5,53 +5,108 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-      #header {
-        margin:10px;
-        position: fixed;
-        bottom: 0;
-        right: 5px;
-      }
-      a, a:hover, a:visited {
-        color: black;
-        border-radius: 5px;
-        padding: 1em;
-        background-color: white;
-        opacity: 0.6;
-        text-decoration: none;
-      }
-
-      a:hover {
-        color: black;
-        opacity: 1;
+      :root {
+        --primary-color: #000000;
+        --bg-color: #ffffff;
+        --text-color: #000000;
+        --opacity-dim: 0.6;
+        --border-radius: 5px;
+        --spacing: 1rem;
+        --header-transition: transform 0.3s ease;
       }
 
       body {
         margin: 0;
         overflow: hidden;
-          height:100vh
+        height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      }
+
+      #header {
+        position: fixed;
+        bottom: var(--spacing);
+        right: var(--spacing);
+        display: flex;
+        gap: var(--spacing);
+        align-items: center;
+        transition: var(--header-transition);
+      }
+
+      #header.collapsed {
+        transform: translateX(calc(100% - 3rem));
+      }
+
+      #toggle-menu {
+        background-color: var(--bg-color);
+        border: none;
+        border-radius: var(--border-radius);
+        padding: 0.5rem;
+        cursor: pointer;
+        opacity: var(--opacity-dim);
+        transition: opacity 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #toggle-menu:hover {
+        opacity: 1;
+      }
+
+      #toggle-menu svg {
+        width: 1.5rem;
+        height: 1.5rem;
+        transition: transform 0.3s ease;
+      }
+
+      #header.collapsed #toggle-menu svg {
+        transform: rotate(180deg);
       }
 
       .frame {
-        width: 100%; height: 100%; border: none; margin: 0; padding: 0; display: block;
+        width: 100%;
+        height: 100%;
+        border: none;
+        margin: 0;
+        padding: 0;
+        display: block;
       }
 
-      a.active {
-        background-color: black;
-        color: white;
+      .framelink {
+        color: var(--text-color);
+        border-radius: var(--border-radius);
+        padding: var(--spacing);
+        background-color: var(--bg-color);
+        opacity: var(--opacity-dim);
+        text-decoration: none;
+        transition: opacity 0.2s ease, background-color 0.2s ease;
+      }
+
+      .framelink:hover {
+        opacity: 1;
+      }
+
+      .framelink.active {
+        background-color: var(--primary-color);
+        color: var(--bg-color);
         opacity: 1;
       }
 
       .announcement {
-        background-color: white;
-        padding: 1em;
-        margin-right:1em;
-        border-radius: 5px;
-        opacity: 0.8
+        background-color: var(--bg-color);
+        padding: var(--spacing);
+        border-radius: var(--border-radius);
+        opacity: 0.8;
       }
     </style>
   </head>
   <body>
     <div id="header">
+      <button id="toggle-menu" aria-label="Toggle menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </button>
       <span class="announcement">
         {{.Announcement}}
       </span>
@@ -59,19 +114,40 @@
       {{range .Tabs}}
       <a href="{{.URL}}" class="framelink">{{.Name}}</a>
       {{end}}
-
     </div>
-    <iframe class="frame" style="" src="{{ (index .Tabs 0).URL }}"></iframe>
+    
+    <iframe class="frame" src="{{ (index .Tabs 0).URL }}"></iframe>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script>
-      $('.framelink').first().addClass('active');
-      $('.framelink').on('click', function(e) {
-        e.preventDefault();
-        document.title = "{{.Title}}: " + $(this).text();
-        $('.frame').attr('src', $(this).attr('href'));
-        $('.framelink').removeClass('active');
-        $(this).addClass('active');
+      document.addEventListener('DOMContentLoaded', () => {
+        const frame = document.querySelector('.frame');
+        const links = document.querySelectorAll('.framelink');
+        const header = document.getElementById('header');
+        const toggleButton = document.getElementById('toggle-menu');
+        
+        links[0]?.classList.add('active');
+
+        links.forEach(link => {
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            frame.src = link.href;
+            document.title = `{{.Title}}: ${link.textContent}`;
+            links.forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+          });
+        });
+
+        toggleButton.addEventListener('click', () => {
+          header.classList.toggle('collapsed');
+          toggleButton.classList.toggle('collapsed');
+        });
+
+        frame.addEventListener('click', () => {
+          if (!header.classList.contains('collapsed')) {
+            header.classList.add('collapsed');
+            toggleButton.classList.add('collapsed');
+          }
+        });
       });
     </script>
   </body>

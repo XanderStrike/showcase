@@ -5,14 +5,14 @@ tabs:
   - name: requests
     url: https://example.com
   - name: couch
-    url: https://couch.example.com
+    url: https://example.com
   - name: sick
-    url: https://sick.example.com
+    url: https://example.com
   - name: gazelleui
-    url: https://gazelleui.example.com
+    url: https://example.com
   - name: manual
-    url: https://manual.example.com
+    url: https://example.com
   - name: tautulli
-    url: https://tautulli.example.com
+    url: https://example.com
   - name: portainer
-    url: https://portainer.example.com/
+    url: https://example.com/

@@ -1,8 +1,0 @@
-hash: 3653aafa6b56ed1ecba9ec54498ef72c59dd1c8d4956ca6ba1202b0451ff411a
-updated: 2019-12-20T19:58:31.332352371Z
-imports:
-- name: github.com/gorilla/mux
-  version: 49c01487a141b49f8ffe06277f3dca3ee80a55fa
-- name: gopkg.in/yaml.v2
-  version: 1f64d6156d11335c3f22d9330b0ad14fc1e789ce
-testImports: []

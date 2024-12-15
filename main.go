@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -22,7 +21,6 @@ type Conf struct {
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Request!")
 	var config Conf
 	confFile, err := ioutil.ReadFile("config/config.yml")
 	if err != nil {
@@ -39,7 +37,8 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	log.Println("Starting!")
-	r := mux.NewRouter()
-	r.HandleFunc("/", HomeHandler)
-	log.Fatal(http.ListenAndServe("0.0.0.0:8080", r))
+	port := "8080"
+	http.HandleFunc("/", HomeHandler)
+	log.Printf("Server is ready to handle requests at port %s\n", port)
+	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, nil))
 }
