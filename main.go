@@ -84,6 +84,9 @@ func main() {
 	}
 
 	port := "8080"
+	http.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "robots.txt")
+	})
 	http.HandleFunc("/intro", basicAuth(IntroHandler, config.Username, config.Password))
 	http.HandleFunc("/", basicAuth(HomeHandler, config.Username, config.Password))
 	log.Printf("Server is ready to handle requests at port %s\n", port)

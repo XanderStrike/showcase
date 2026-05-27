@@ -8,6 +8,7 @@ WORKDIR /app
 COPY --from=builder /app/showcase .
 COPY index.html .
 COPY intro.html .
+COPY robots.txt .
 
 RUN adduser -D appuser && \
     mkdir config && \
